@@ -1,0 +1,113 @@
+// VandeBrookeBenDVCScheduleCheck.cpp
+// by Ben Van de Brooke
+// On 12/5/16
+// Editor: X-Code
+// Compiler: GCC
+// Description: Reads a file containing all of the classes taught at DVC since 2000 and finds invalid entries
+
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+
+int main()
+{
+    
+    //Universal Program Requirements
+    cout << "VandeBrookeBenLab6bDVCScheduleCheck.cpp " << endl;
+    cout << "by Ben Van de Brooke" << endl;
+    cout << "On 12/5/16" << endl;
+    cout << "Editor: X-Code" << endl;
+    cout << "Compiler: GCC" << endl;
+    cout << "Description:" << endl;
+    
+    map<string,string> uniques;
+    map<string,map<string,map<string,string>>> invalids;
+    
+    int numLinesRead = 0;
+    string season, year, section, course, line, garbage, invalidOne, invalidTwo;
+    ifstream inFile;
+    
+    inFile.open("dvc-schedule.txt");
+    
+    //throws away 1st line heading
+    getline(inFile,garbage);
+    
+    while(inFile)
+    {
+        
+        //prints a counter using .
+        if(++numLinesRead % 1000 == 0)
+        {
+            cout << ".";
+            cout.flush();
+        }
+        if(numLinesRead % 20000 == 0)
+        {
+            cout << endl;
+            cout.flush();
+        }
+        
+        
+        //skips empty lines
+        getline(inFile,line);
+        if(line == "")
+        {
+            continue;
+        }
+        
+        //input and parse
+        stringstream(line) >> season >> year >> section >> course >> garbage;
+        
+        line = season + year + section;
+        
+        
+        //if its stored then increment the number of repeats, otherwise add it
+        if(uniques.find(line) == uniques.end())
+        {
+            uniques[line] = course;
+        }
+        else
+        {
+            //check to see if the course of this current entry is equal to
+            if(uniques.find(line) != uniques.end() && uniques[line] != course)
+            {
+                //an invalid pair has been found
+                invalids[year][season][section] = uniques[line] + "," + course;
+            }
+        }
+    }
+    
+    
+    //out put
+    if(invalids.size() != 0)
+    {
+        cout << "\n\nConflicting sections:" << endl;
+        for( map<string,map<string,map<string,string>>>::iterator yearIt = invalids.begin();yearIt != invalids.end(); yearIt++)
+        {
+            cout << yearIt->first <<":" << endl;
+            
+            for(map<string,map<string,string>>::iterator seasonIt = yearIt->second.begin(); seasonIt != yearIt->second.end() ; seasonIt++)
+            {
+                cout <<"\t" << seasonIt->first << ":" << endl;
+                
+                for(map<string,string>::iterator sectionIt = seasonIt->second.begin(); sectionIt != seasonIt->second.end(); sectionIt++)
+                {
+                    invalidOne = sectionIt->second.substr(0,sectionIt->second.find_first_of(","));
+                    invalidTwo = sectionIt->second.substr(sectionIt->second.find_first_of(","));
+                    
+                    cout << "\t\t" << invalidOne << "-" << sectionIt->first << invalidTwo << "-" << sectionIt->first << endl;
+                }
+            }
+        }
+    }
+    else
+    {
+        cout << "No conflicting sections were found" << endl;
+    }
+    
+    return 0;
+}

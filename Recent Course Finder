@@ -1,0 +1,114 @@
+// VandeBrookeBenDVCScheduleSearch.cpp
+// by Ben Van de Brooke
+// On 12/5/16
+// Editor: X-Code
+// Compiler: GCC
+// Description: Determines when the last time a course was taught at DVC based off of information read from a file
+
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+int main()
+{
+    
+    //Universal Program Requirements
+    cout << "VandeBrookeBenDVCScheduleSearch.cpp " << endl;
+    cout << "by Ben Van de Brooke" << endl;
+    cout << "On 12/5/16" << endl;
+    cout << "Editor: X-Code" << endl;
+    cout << "Compiler: GCC" << endl;
+    cout << "Description: Determines when the last time a course was taught at DVC based off of information read from a file" << endl;
+    
+    map<string,bool> uniques;
+    map<string,map<string,int>> tally; //tally[arch][arch158] gives the number of times its been taught
+    map<string,string> seasons;
+    
+    map<string,string> lastTaught;
+    
+    seasons["Spring"] = "1";
+    seasons["Summer"] = "2";
+    seasons["Fall"] = "3";
+    
+    
+    int numLinesRead = 0;
+    string season, year, section, course, line,dept, garbage;
+    ifstream inFile;
+    
+    inFile.open("dvc-schedule.txt");
+    
+    //throws away 1st line heading
+    getline(inFile,garbage);
+    
+    while(inFile)
+    {
+        
+        //prints a counter using .
+        if(++numLinesRead % 1000 == 0)
+        {
+            cout << ".";
+            cout.flush();
+        }
+        if(numLinesRead % 20000 == 0)
+        {
+            cout << endl;
+            cout.flush();
+        }
+        
+        
+        //skips empty lines
+        getline(inFile,line);
+        if(line == "")
+        {
+            continue;
+        }
+        
+        //input and parse
+        stringstream(line) >> season >> year >> section >> course >> garbage;
+        
+        dept = course.substr(0,course.find_first_of("-")); // gets the dept name from course
+        line = season + year + section;
+        
+        //if its stored then increment the number of repeats, otherwise add it
+        if(uniques.find(line) == uniques.end())
+        {
+            uniques[line] = true;
+            
+            if(lastTaught[course] < year + " " + seasons[season] + season)
+            {
+                lastTaught[course] = year + " " + seasons[season] + season;
+            }
+        }
+    }
+    
+    //user controlled out put
+    while(course != "x" && course != "X")
+    {
+        cout << "\nGive me a course (ex: MATH-120) and I will tell you when the last time it was taught" << endl;
+        getline(cin,course);
+        
+        if(course != "x" && course != "X" )
+        {
+            
+            if(lastTaught.find(course) != lastTaught.end())
+            {
+                //string management
+                year = lastTaught[course].substr(0,lastTaught[course].find_first_of(" "));
+                season = lastTaught[course].substr(lastTaught[course].find_first_of(" "));
+                season.erase(season.begin()+1);
+            
+                cout << course << " was last taught" << season << " " << year << endl;
+            }
+            else
+            {
+                cout << "The course was not found." << endl;
+            }
+        }
+        
+    }
+    
+    return 0;
+}
